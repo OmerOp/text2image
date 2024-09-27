@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stable Diffusion Image Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #loading {
+            display: none;
+            margin-top: 20px;
+        }
+        #output-image {
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stable Diffusion Image Generator</h1>
+    <input type="text" id="prompt" placeholder="Enter a text prompt">
+    <button onclick="generateImage()">Generate Image</button>
+    <p id="loading">Loading...</p>
+    <img id="output-image" src="" alt="Generated Image">
+
+    <script>
+        function generateImage() {
+            const prompt = document.getElementById("prompt").value;
+            const loading = document.getElementById("loading");
+            const outputImage = document.getElementById("output-image");
+
+            loading.style.display = "block";  // Show the loading text
+            outputImage.style.display = "none";  // Hide the image initially
+
+            fetch('http://localhost:5000/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ prompt: prompt })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = "none";  // Hide the loading text
+                outputImage.src = "data:image/png;base64," + data.image;
+                outputImage.style.display = "block";  // Show the image
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                loading.textContent = "Error generating image.";
+            });
+        }
+    </script>
+</body>
+</html>
