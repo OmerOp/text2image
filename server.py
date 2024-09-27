@@ -1,35 +1,31 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
-from diffusers import StableDiffusionPipeline
-import torch
-from PIL import Image
-import base64
-from io import BytesIO
+name: Python application
 
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+on:
+  push:
+    branches:
+      - main  # Replace with your main branch name
+  pull_request:
+    branches:
+      - main
 
-# Load the Stable Diffusion model
-model_id = "CompVis/stable-diffusion-v1-4"
-pipe = StableDiffusionPipeline.from_pretrained(model_id)
-pipe = pipe.to("cpu")  # Use CPU for processing
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-@app.route('/generate', methods=['POST'])
-def generate():
-    # Get the text prompt from the request
-    data = request.get_json()
-    prompt = data['prompt']
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    # Generate the image
-    image = pipe(prompt).images[0]
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'  # Choose your Python version
 
-    # Convert the image to base64
-    buffered = BytesIO()
-    image.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install torch torchvision transformers diffusers Flask
 
-    # Return the image as base64
-    return jsonify({'image': img_str})
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    - name: Run server
+      run: |
+        python server.py
